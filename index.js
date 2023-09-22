@@ -1,15 +1,27 @@
-const express=require('express')
+const express = require('express')
 const connection = require('./config/db')
 const userRoute = require('./routes/userRoute')
+const productRoute = require('./routes/productRoute')
+const cartRoute = require('./routes/cartRoute')
+const categoryRoute = require('./routes/categoryRoute')
+const ordersRoute = require('./routes/ordersRoute')
 require('dotenv').config()
-const app=express()
+const app = express()
 app.use(express.json())
-app.use('/user',userRoute)
-app.get('/',(req,res)=>{
+
+
+app.use('/user', userRoute)
+app.use('/product', productRoute)
+app.use('/cart', cartRoute)
+app.use('/orders', ordersRoute)
+app.use('/category', categoryRoute)
+
+
+app.get('/', (req, res) => {
     res.json('welcome')
 })
 
-app.listen(process.env.port,async()=>{
+app.listen(process.env.port, async () => {
     try {
         await connection
         console.log('connected to db');

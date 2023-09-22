@@ -32,7 +32,7 @@ userRoute.post('/register', async (req, res) => {
 })
 userRoute.post('/login', async (req, res) => {
     try {
-        let { email, password} = req.body
+        let { email, password } = req.body
         if (!email || !password) res.json('Improper Login Fields.');
         else {
             let user = await userModel.findOne({ email })
@@ -55,6 +55,29 @@ userRoute.post('/login', async (req, res) => {
         console.log(error);
     }
 })
+userRoute.post('/refresh-token', (req, res) => {
+    const refreshToken = req.body.refreshToken; // Assuming the refresh token is sent in the request body
+
+    if (!refreshToken) {
+        return res.status(400).json({ message: 'Refresh token is missing' });
+    }
+
+    // Verify the refresh token
+    jwt.verify(refreshToken, process.env.secret, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Invalid refresh token' });
+        }
+
+        // If the refresh token is valid, generate a new access token
+        // Assuming you encoded the user ID in the refresh token
+
+        const accessToken = jwt.sign({ decoded }, process.env.secret, { expiresIn: '1h' }); // Generate a new access token
+
+        // Send the new access token back to the client
+        res.json({ accessToken });
+    });
+});
+
 
 
 module.exports = userRoute
