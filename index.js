@@ -1,5 +1,6 @@
 const express = require('express')
 const connection = require('./config/db')
+const rateLimit = require('express-rate-limit');
 const userRoute = require('./routes/userRoute')
 const productRoute = require('./routes/productRoute')
 const cartRoute = require('./routes/cartRoute')
@@ -9,6 +10,18 @@ require('dotenv').config()
 const app = express()
 app.use(express.json())
 
+// Define a rate limiting middleware
+const limiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 15 minutes
+    max: 100, // Maximum 100 requests per windowMs
+    message: 'Too many requests, please try again later.',
+});
+
+// Apply rate limiting to specific routes
+app.use('/product', limiter);
+app.use('/cart', limiter);
+app.use('/orders', limiter);
+app.use('/category', limiter);
 
 app.use('/user', userRoute)
 app.use('/product', productRoute)

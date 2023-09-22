@@ -1,6 +1,7 @@
 const express = require('express');
 const cartModel = require('../models/cartModel');
 const ordersModel = require('../models/ordersModel');
+const verifyToken = require('../middlewares/authentication');
 const ordersRoute = express.Router();
 // Your Mongoose models and other setup code
 
@@ -30,7 +31,7 @@ ordersRoute.post('/place-order', async (req, res) => {
     await order.save();
 
     // Clear the user's cart (assuming you have a method for this)
-    await cartModel.findOneAndUpdate({ userId }, { $set: { products: [] ,totalprice:0} });
+    await cartModel.findOneAndUpdate({ userId }, { $set: { products: [], totalprice: 0 } });
 
     res.json(order);
   } catch (error) {
@@ -38,4 +39,27 @@ ordersRoute.post('/place-order', async (req, res) => {
     res.status(500).json({ error: 'An error occurred while placing the order' });
   }
 });
+
+ordersRoute.get('/allorders', verifyToken, async (req, res) => {
+  try {
+    let { userId } = req.body
+    let dataPopulated = await ordersModel.find({ userId })
+
+    res.json(dataPopulated)
+
+  } catch (error) {
+    res.json(error)
+  }
+})
+ordersRoute.get('/getorder/:id', async (req, res) => {
+  try {
+    let id = req.params.id
+    let dataPopulated = await ordersModel.findOne({ _id: id })
+    res.json(dataPopulated)
+
+  } catch (error) {
+    res.json(error)
+  }
+})
+
 module.exports = ordersRoute;
