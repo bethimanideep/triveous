@@ -3,12 +3,11 @@ const cartModel = require('../models/cartModel');
 const ordersModel = require('../models/ordersModel');
 const verifyToken = require('../middlewares/authentication');
 const ordersRoute = express.Router();
-// Your Mongoose models and other setup code
 
-// Create a route to place an order
+//Place Order Route
 ordersRoute.post('/place-order', verifyToken, async (req, res) => {
   try {
-    const userId = req.body.userId; // Assuming you have a user ID in the request body
+    const userId = req.body.userId;
 
     // Find the user's cart
     const cart = await cartModel.findOne({ userId }).populate('products.productId');
@@ -37,6 +36,7 @@ ordersRoute.post('/place-order', verifyToken, async (req, res) => {
   }
 });
 
+//AllOrders Of Specific User
 ordersRoute.get('/allorders', verifyToken, async (req, res) => {
   try {
     let { userId } = req.body
@@ -48,6 +48,8 @@ ordersRoute.get('/allorders', verifyToken, async (req, res) => {
     res.status(500).json({ msg: "error in getting allorders", error })
   }
 })
+
+//Fetching An Order By OrderID
 ordersRoute.get('/getorder/:id', verifyToken, async (req, res) => {
   try {
     let id = req.params.id

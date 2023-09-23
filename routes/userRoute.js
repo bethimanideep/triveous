@@ -5,41 +5,49 @@ const jwt = require('jsonwebtoken')
 const { userModel } = require('../models/usermodel')
 require('dotenv').config()
 
-
+//Signup Route
 userRoute.post('/register', async (req, res) => {
     try {
-        let { name, email, password ,role} = req.body
-        if (!name || !email || !password) res.json('Improper Registration Fields');
-        else {
-            let user = await userModel.findOne({ email })
-            if (user) return res.json('Already User Exists')
-            let hash = bcrypt.hashSync(password, 10)
-            let data = {
-                name,
-                email,
-                password: hash,
-                role
-            }
-            let userdata = new userModel(data)
-            await userdata.save()
-            res.status(201).json('User Registered Successfully')
+        let { name, email, password, role } = req.body
+        //Checking Fields
+        if (!name || !email || !password) return res.json('Improper Registration Fields');
+        //Checking Email If Present
+        let user = await userModel.findOne({ email })
+        if (user) return res.json('Already User Exists')
+        //Password Hashing
+        let hash = bcrypt.hashSync(password, 10)
+        let data = {
+            name,
+            email,
+            password: hash,
+            role
         }
+        //Save Data
+        let userdata = new userModel(data)
+        await userdata.save()
+        return res.status(201).json('User Registered Successfully')
     } catch (error) {
         res.status(500).json({ msg: "error in register", error })
     }
 })
+
+//Login Route
 userRoute.post('/login', async (req, res) => {
     try {
-        let { email, password} = req.body
+        let { email, password } = req.body
+        //Checking Fields
         if (!email || !password) return res.status(400).json('Improper Login Fields.');
+        //Checking Email
         let user = await userModel.findOne({ email })
         if (!user) return res.status(404).json('User Not Found')
+        ////Checking Password
         let passwordcheck = bcrypt.compareSync(password, user.password)
         if (!passwordcheck) return res.status(401).json("Invalid Password")
+        //Generating Token and RefreshToken
         let token = jwt.sign({ user }, process.env.secret, { expiresIn: '1h' })
         let refreshtoken = jwt.sign({ user }, process.env.secret, { expiresIn: '2h' })
-        req.user=user
-
+        
+        req.user = user
         return res.status(201).json({
             msg: 'User LoggedIn Successfully',
             token,
@@ -49,25 +57,20 @@ userRoute.post('/login', async (req, res) => {
         res.status(500).json({ msg: "error in login", error })
     }
 })
+
+//Generate Token Using RefreshToken
 userRoute.post('/refresh-token', (req, res) => {
-    const refreshToken = req.body.refreshToken; // Assuming the refresh token is sent in the request body
+    const refreshToken = req.body.refreshToken;
+    //Checking RefreshToken
+    if (!refreshToken)return res.status(400).json({ message: 'Refresh token is missing' });
 
-    if (!refreshToken) {
-        return res.status(400).json({ message: 'Refresh token is missing' });
-    }
-
-    // Verify the refresh token
+    // Verify RefreshToken
     jwt.verify(refreshToken, process.env.secret, (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ message: 'Invalid refresh token' });
-        }
 
-        // If the refresh token is valid, generate a new access token
-        // Assuming you encoded the user ID in the refresh token
+        if (err)return res.status(401).json({ message: 'Invalid refresh token' });
+        //Generating Token
+        const accessToken = jwt.sign({ decoded }, process.env.secret, { expiresIn: '1h' });
 
-        const accessToken = jwt.sign({ decoded }, process.env.secret, { expiresIn: '1h' }); // Generate a new access token
-
-        // Send the new access token back to the client
         res.status(201).json({ accessToken });
     });
 });

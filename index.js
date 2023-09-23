@@ -1,11 +1,13 @@
 const express = require('express')
 const connection = require('./config/db')
 const rateLimit = require('express-rate-limit');
+
 const userRoute = require('./routes/userRoute')
 const productRoute = require('./routes/productRoute')
 const cartRoute = require('./routes/cartRoute')
 const categoryRoute = require('./routes/categoryRoute')
 const ordersRoute = require('./routes/ordersRoute')
+
 require('dotenv').config()
 const app = express()
 app.use(express.json())

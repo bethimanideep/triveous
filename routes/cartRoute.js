@@ -5,80 +5,91 @@ const productModel = require('../models/productModel');
 const verifyToken = require('../middlewares/authentication');
 const cartRoute = express.Router();
 
-// Create a route to add products to the cart
+// Product Add-to-cart Route
 cartRoute.post('/add-to-cart', verifyToken, async (req, res) => {
     try {
         const { userId, productId, quantity } = req.body;
-
-        // Find the user's cart or create a new one if it doesn't exist
+        //Checking UsersCart
         let cart = await cartModel.findOne({ userId });
-        //cart notpresent
+        //If Cart NotPresent Create Cart
         if (!cart) {
+            //Creating Cart
             let newcart = new cartModel({
                 userId,
                 products: [],
                 totalprice: 0,
             });
+            //Pushing products to Products Array
             newcart.products.push({
                 productId,
                 quantity,
             });
+
             let product = await productModel.findOne({ _id: productId })
             if (!product) return res.status(404).json({ msg: "product not found in cart route" })
-
+            //Checking Availability
             if (!product.availability) return res.status(404).json({ msg: "Product not Available" })
+
+            //Calculating TotalPrice
             newcart.totalprice = product.mrp * quantity
             await newcart.save();
             return res.status(201).json("first product added")
         }
-        //cart present
-        if (!mongoose.Types.ObjectId.isValid(productId)) {
-            return res.status(400).json({ message: 'Invalid productId' });
-        }
+        //If Cart Present
+        //Checking ProductID
+        if (!mongoose.Types.ObjectId.isValid(productId))return res.status(400).json({ message: 'Invalid productId' });
+
         let product = await productModel.findOne({ _id: productId })
+
         if (!product) return res.status(404).json('product not found')
         if (!product.availability) return res.status(404).json({ msg: "Product not Available" })
+
+        //Populating Data from Products Collection
         let dataPopulated = await cartModel.findOne({ userId }).populate('products.productId');
-        //checking
+        //Checking Products Already EXists in Cart
         let arr = cart.products
         let temp = false;
         for (let i = 0; i < arr.length; i++) {
+            //If Product Present In Cart
             if (arr[i].productId == productId) {
-                //case product present
+                //Update Quantity And TotalPrice
                 arr[i].quantity = arr[i].quantity + quantity
-                // let product = await productModel.findOne({ _id: productId })
                 cart.totalprice = cart.totalprice + product.mrp * quantity
                 await cartModel.findOneAndUpdate({ userId }, cart)
                 temp = true;
                 break;
             }
         }
-        console.log(temp);
+        //If Product Not Present In Cart
         if (temp == false) {
-            // not present
+            //Adding Product To Carts
             cart.products.push({
                 productId,
                 quantity
             })
-            //total price
+            //Getting TotalPrice
             let totalprice = await gettotalprice(dataPopulated.products)
-            //productdata
+            //Productdata
             let product = await productModel.findOne({ _id: productId })
+            //Calculating TotalPrice
             cart.totalprice = totalprice + product.mrp * quantity
+            //Update
             await cartModel.findOneAndUpdate({ userId }, cart)
             let updatedcart = await cartModel.findOne({ userId });
             return res.status(201).send({ msg: "product added to cart", updatedcart })
-        } else {
-            return res.status(201).send({ msg: "product already present in cart updated quantity and totalprice" })
-        }
+        } else return res.status(201).send({ msg: "product already present in cart updated quantity and totalprice" })
+        
     } catch (error) {
         console.error('Error adding product to cart:', error);
         return res.status(500).json({ error: 'Error in adding product to cart', error });
     }
 });
+
+//Getting Carts Data Of Specific User
 cartRoute.get('/cartdata/:userId', verifyToken, async (req, res) => {
     try {
         let { userId } = req.params
+
         let dataPopulated = await cartModel.findOne({ userId }).populate('products.productId');
 
         res.status(200).json(dataPopulated)
@@ -89,19 +100,20 @@ cartRoute.get('/cartdata/:userId', verifyToken, async (req, res) => {
 })
 
 
-
+//Deleting Product From Cart
 cartRoute.delete('/remove/:productId', verifyToken, async (req, res) => {
     try {
-        const { userId, productId } = req.body; // Get the user ID from the request
-        // Find the user's cart and remove the product based on the product ID
+        const { userId, productId } = req.body;
+        //Deleting Product
         let updatedCart = await cartModel.findOneAndUpdate(
             { userId },
             { $pull: { products: { productId } } },
             { new: true }
         );
+
         let dataPopulated = await cartModel.findOne({ userId }).populate('products.productId');
+        //Updating TotalPrice After Deleting
         let totalprice = await gettotalprice(dataPopulated.products)
-        console.log(totalprice);
         await cartModel.findOneAndUpdate({ userId }, {totalprice})
         let data=await cartModel.findOne({ userId })
 
@@ -111,6 +123,7 @@ cartRoute.delete('/remove/:productId', verifyToken, async (req, res) => {
     }
 });
 
+//Updating Quantity
 cartRoute.put('/update-quantity', verifyToken, async (req, res) => {
     try {
         const { userId, productId, quantity } = req.body;
@@ -142,15 +155,13 @@ cartRoute.put('/update-quantity', verifyToken, async (req, res) => {
             return cartProduct;
         });
 
-        // Calculate the new totalprice based on the updated quantities
-
-
-        // Update the cart with the updated products and totalprice
         cart.products = updatedProducts;
         await cart.save();
+
         cart = await cartModel.findOne({ userId });
         let dataPopulated = await cartModel.findOne({ userId }).populate('products.productId');
         let totalprice = await gettotalprice(dataPopulated.products)
+        //Updating Totalprice
         cart.totalprice = totalprice;
         await cart.save();
         // Save the updated cart
@@ -161,7 +172,7 @@ cartRoute.put('/update-quantity', verifyToken, async (req, res) => {
     }
 });
 
-
+//Function For Getting TotalPrice Of CartData
 function gettotalprice(arr) {
     let sum = 0;
     for (let i = 0; i < arr.length; i++) {
@@ -169,8 +180,5 @@ function gettotalprice(arr) {
     }
     return sum
 }
-
-
-
 
 module.exports = cartRoute;

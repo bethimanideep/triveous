@@ -2,6 +2,7 @@ const productModel = require("../models/productModel");
 
 exports.getAllCategories = async (req, res) => {
     try {
+        //Fetching Categories
         const categories = await productModel.distinct('category');
         res.status(200).json(categories);
       } catch (error) {

@@ -5,8 +5,8 @@ const verifyToken = require('../middlewares/authentication');
 const { getProductsByCategory, getProductById } = require('../controllers/productController');
 const { authorize } = require('../middlewares/authorization');
 
-// Create a route to add a product
-productRoute.post('/add-product',verifyToken,authorize(['Admin']), async (req, res) => {
+//Add a product Role=[Admin] Only
+productRoute.post('/add-product', verifyToken, authorize(['Admin']), async (req, res) => {
   try {
     // Extract product data from the request body
     const {
@@ -46,14 +46,15 @@ productRoute.post('/add-product',verifyToken,authorize(['Admin']), async (req, r
     return res.status(201).json({ message: 'Product added successfully' });
   } catch (error) {
     console.error('Error adding product:', error);
-    return res.status(500).json({ error: 'Error in Product Adding',error });
+    return res.status(500).json({ error: 'Error in Product Adding', error });
   }
 });
 
 
-// Endpoint for product listing based on category Name
-productRoute.get('/categoryproducts/:category',getProductsByCategory);
+//Products listing based on category Name
+productRoute.get('/categoryproducts/:category', getProductsByCategory);
 
-productRoute.get('/getproduct/:product_id',getProductById)
+//Fetching Product By ProductID
+productRoute.get('/getproduct/:product_id', getProductById)
 
 module.exports = productRoute;
