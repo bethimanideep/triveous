@@ -45,14 +45,14 @@ productRoute.post('/add-product', async (req, res) => {
     return res.status(201).json({ message: 'Product added successfully' });
   } catch (error) {
     console.error('Error adding product:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Error in Product Adding',error });
   }
 });
 
 
-// Endpoint for product listing based on category ID
-productRoute.get('/categoryproducts/:category', verifyToken,getProductsByCategory);
+// Endpoint for product listing based on category Name
+productRoute.get('/categoryproducts/:category',getProductsByCategory);
 
-productRoute.get('/getproduct/:product_id',verifyToken,getProductById)
+productRoute.get('/getproduct/:product_id',getProductById)
 
 module.exports = productRoute;

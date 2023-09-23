@@ -12,7 +12,6 @@ cartRoute.post('/add-to-cart', verifyToken, async (req, res) => {
 
         // Find the user's cart or create a new one if it doesn't exist
         let cart = await cartModel.findOne({ userId });
-        console.log(cart);
         //cart notpresent
         if (!cart) {
             let newcart = new cartModel({
@@ -25,23 +24,20 @@ cartRoute.post('/add-to-cart', verifyToken, async (req, res) => {
                 quantity,
             });
             let product = await productModel.findOne({ _id: productId })
-            if (!product) return res.json({ msg: "product not found in cart route" })
-            console.log(product);
-            console.log(product.availability);
+            if (!product) return res.status(404).json({ msg: "product not found in cart route" })
 
-            if (!product.availability) return res.json({ msg: "Product not Available" })
+            if (!product.availability) return res.status(404).json({ msg: "Product not Available" })
             newcart.totalprice = product.mrp * quantity
-            console.log(newcart);
             await newcart.save();
-            return res.json("first product added")
+            return res.status(201).json("first product added")
         }
         //cart present
         if (!mongoose.Types.ObjectId.isValid(productId)) {
             return res.status(400).json({ message: 'Invalid productId' });
         }
         let product = await productModel.findOne({ _id: productId })
-        if (!product) return res.json('product not found')
-        if (!product.availability) return res.json({ msg: "Product not Available" })
+        if (!product) return res.status(404).json('product not found')
+        if (!product.availability) return res.status(404).json({ msg: "Product not Available" })
         let dataPopulated = await cartModel.findOne({ userId }).populate('products.productId');
         //checking
         let arr = cart.products
@@ -51,7 +47,6 @@ cartRoute.post('/add-to-cart', verifyToken, async (req, res) => {
                 //case product present
                 arr[i].quantity = arr[i].quantity + quantity
                 // let product = await productModel.findOne({ _id: productId })
-                console.log(product);
                 cart.totalprice = cart.totalprice + product.mrp * quantity
                 await cartModel.findOneAndUpdate({ userId }, cart)
                 temp = true;
@@ -67,37 +62,29 @@ cartRoute.post('/add-to-cart', verifyToken, async (req, res) => {
             })
             //total price
             let totalprice = await gettotalprice(dataPopulated.products)
-            console.log(totalprice + 'totalprice');
             //productdata
             let product = await productModel.findOne({ _id: productId })
-            console.log(product + "productdata");
             cart.totalprice = totalprice + product.mrp * quantity
-            console.log(cart + "updated data");
             await cartModel.findOneAndUpdate({ userId }, cart)
             let updatedcart = await cartModel.findOne({ userId });
-            return res.send({ msg: "product added to cart", updatedcart })
+            return res.status(201).send({ msg: "product added to cart", updatedcart })
         } else {
-            return res.send({ msg: "product already present in cart updated quantity" })
+            return res.status(201).send({ msg: "product already present in cart updated quantity and totalprice" })
         }
-
-
-
-
-
     } catch (error) {
         console.error('Error adding product to cart:', error);
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ error: 'Error in adding product to cart', error });
     }
 });
-cartRoute.get('/cartdata/:userId', async (req, res) => {
+cartRoute.get('/cartdata/:userId', verifyToken, async (req, res) => {
     try {
         let { userId } = req.params
         let dataPopulated = await cartModel.findOne({ userId }).populate('products.productId');
 
-        res.json(dataPopulated)
+        res.status(200).json(dataPopulated)
 
     } catch (error) {
-        res.json(error)
+        res.status(500).json(error)
     }
 })
 
@@ -106,23 +93,25 @@ cartRoute.get('/cartdata/:userId', async (req, res) => {
 cartRoute.delete('/remove/:productId', verifyToken, async (req, res) => {
     try {
         const { userId, productId } = req.body; // Get the user ID from the request
-        console.log(userId, productId)
-
         // Find the user's cart and remove the product based on the product ID
-        const updatedCart = await cartModel.findOneAndUpdate(
+        let updatedCart = await cartModel.findOneAndUpdate(
             { userId },
             { $pull: { products: { productId } } },
             { new: true }
         );
+        let dataPopulated = await cartModel.findOne({ userId }).populate('products.productId');
+        let totalprice = await gettotalprice(dataPopulated.products)
+        console.log(totalprice);
+        await cartModel.findOneAndUpdate({ userId }, {totalprice})
+        let data=await cartModel.findOne({ userId })
 
-        res.json(updatedCart);
+        res.status(201).json(data);
     } catch (error) {
-        console.error('Error removing item from cart:', error);
         res.status(500).json({ error: 'An error occurred while removing the item from the cart' });
     }
 });
 
-cartRoute.put('/update-quantity', async (req, res) => {
+cartRoute.put('/update-quantity', verifyToken, async (req, res) => {
     try {
         const { userId, productId, quantity } = req.body;
 
@@ -154,7 +143,7 @@ cartRoute.put('/update-quantity', async (req, res) => {
         });
 
         // Calculate the new totalprice based on the updated quantities
-        
+
 
         // Update the cart with the updated products and totalprice
         cart.products = updatedProducts;
@@ -162,15 +151,13 @@ cartRoute.put('/update-quantity', async (req, res) => {
         cart = await cartModel.findOne({ userId });
         let dataPopulated = await cartModel.findOne({ userId }).populate('products.productId');
         let totalprice = await gettotalprice(dataPopulated.products)
-        console.log(totalprice + 'totalprice');
         cart.totalprice = totalprice;
         await cart.save();
         // Save the updated cart
 
-        res.json(cart);
+        res.status(201).json(cart);
     } catch (error) {
-        console.error('Error updating cart:', error);
-        res.status(500).json({ error: 'An error occurred while updating the cart' });
+        res.status(500).json({ error: 'An error occurred while updating the quantity', error });
     }
 });
 

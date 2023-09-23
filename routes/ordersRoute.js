@@ -6,16 +6,14 @@ const ordersRoute = express.Router();
 // Your Mongoose models and other setup code
 
 // Create a route to place an order
-ordersRoute.post('/place-order', async (req, res) => {
+ordersRoute.post('/place-order', verifyToken, async (req, res) => {
   try {
     const userId = req.body.userId; // Assuming you have a user ID in the request body
 
     // Find the user's cart
     const cart = await cartModel.findOne({ userId }).populate('products.productId');
-
-    if (!cart) {
-      return res.status(404).json({ message: 'Cart not found' });
-    }
+    if (!cart)return res.status(404).json({ message: 'Cart not found' });
+    if(cart.totalprice==0)return res.status(404).json({msg:'cart is empty'})    
 
     // Create an order from the cart data
     const order = new ordersModel({
@@ -33,10 +31,9 @@ ordersRoute.post('/place-order', async (req, res) => {
     // Clear the user's cart (assuming you have a method for this)
     await cartModel.findOneAndUpdate({ userId }, { $set: { products: [], totalprice: 0 } });
 
-    res.json(order);
+    res.status(201).json(order);
   } catch (error) {
-    console.error('Error placing order:', error);
-    res.status(500).json({ error: 'An error occurred while placing the order' });
+    res.status(500).json({ error: 'An error occurred while placing the order', error });
   }
 });
 
@@ -45,20 +42,20 @@ ordersRoute.get('/allorders', verifyToken, async (req, res) => {
     let { userId } = req.body
     let dataPopulated = await ordersModel.find({ userId })
 
-    res.json(dataPopulated)
+    res.status(200).json(dataPopulated)
 
   } catch (error) {
-    res.json(error)
+    res.status(500).json({ msg: "error in getting allorders", error })
   }
 })
-ordersRoute.get('/getorder/:id', async (req, res) => {
+ordersRoute.get('/getorder/:id', verifyToken, async (req, res) => {
   try {
     let id = req.params.id
     let dataPopulated = await ordersModel.findOne({ _id: id })
-    res.json(dataPopulated)
+    res.status(200).json(dataPopulated)
 
   } catch (error) {
-    res.json(error)
+    res.status(500).json({ msg: "error in getting the specific order", error })
   }
 })
 
