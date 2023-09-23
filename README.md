@@ -73,6 +73,14 @@ Before getting started, make sure you have the following installed:
    npm run server
    ```
 
+# Port for the Node.js server
+port=anyport
+
+# MongoDB connection URI
+mongodb=mongodburl   
+
+# Secret key for JWT token generation
+secret=yoursecret
 
 ## Usage
 ### Authentication
