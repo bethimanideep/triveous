@@ -3,9 +3,10 @@ const productRoute = express.Router();
 const productModel = require('../models/productModel');
 const verifyToken = require('../middlewares/authentication');
 const { getProductsByCategory, getProductById } = require('../controllers/productController');
+const { authorize } = require('../middlewares/authorization');
 
 // Create a route to add a product
-productRoute.post('/add-product', async (req, res) => {
+productRoute.post('/add-product',verifyToken,authorize(['Admin']), async (req, res) => {
   try {
     // Extract product data from the request body
     const {

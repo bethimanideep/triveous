@@ -8,7 +8,7 @@ require('dotenv').config()
 
 userRoute.post('/register', async (req, res) => {
     try {
-        let { name, email, password } = req.body
+        let { name, email, password ,role} = req.body
         if (!name || !email || !password) res.json('Improper Registration Fields');
         else {
             let user = await userModel.findOne({ email })
@@ -17,7 +17,8 @@ userRoute.post('/register', async (req, res) => {
             let data = {
                 name,
                 email,
-                password: hash
+                password: hash,
+                role
             }
             let userdata = new userModel(data)
             await userdata.save()
@@ -29,7 +30,7 @@ userRoute.post('/register', async (req, res) => {
 })
 userRoute.post('/login', async (req, res) => {
     try {
-        let { email, password } = req.body
+        let { email, password} = req.body
         if (!email || !password) return res.status(400).json('Improper Login Fields.');
         let user = await userModel.findOne({ email })
         if (!user) return res.status(404).json('User Not Found')
@@ -37,6 +38,8 @@ userRoute.post('/login', async (req, res) => {
         if (!passwordcheck) return res.status(401).json("Invalid Password")
         let token = jwt.sign({ user }, process.env.secret, { expiresIn: '1h' })
         let refreshtoken = jwt.sign({ user }, process.env.secret, { expiresIn: '2h' })
+        req.user=user
+
         return res.status(201).json({
             msg: 'User LoggedIn Successfully',
             token,
