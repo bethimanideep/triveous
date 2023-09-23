@@ -6,11 +6,10 @@ This project will deliver a comprehensive e-commerce API set that enables seamle
 
 
 ## Backend Deploy
-
-## Swagger UI
+https://triveous-omega.vercel.app/
 
 # Video Demonstration
-
+https://drive.google.com/file/d/1_IRpANot-MHxEp57BjINnRtRTm7U7jCL/view?usp=sharing
 ## Table of Contents
 
 - [Features](#features)
