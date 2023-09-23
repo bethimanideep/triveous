@@ -1,48 +1,137 @@
-# Project Name
+# Ecommerce API [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Brief project description here.
+# Overview 
+This project will deliver a comprehensive e-commerce API set that enables seamless product and category management, user authentication, secure cart management, and order processing. The integration of MongoDB as the database and token management system ensures efficient data storage and user authentication with minimal server-side setup.
+
+
+
+## Backend Deploy
+
+## Swagger UI
+
+# Video Demonstration
 
 ## Table of Contents
 
-- [Introduction](#introduction)
 - [Features](#features)
+- [Technologies Used](#technologies-used)
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
 - [Usage](#usage)
-- [Configuration](#configuration)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgments](#acknowledgments)
-
-## Introduction
-
-Provide a high-level introduction to your project. What does it do, and why is it useful? You can also include a project logo or a screenshot here.
+  - [Authentication] (#authentication)
+  - [Routes](#routes)
+- [API Documentation](#api-documentation)
 
 ## Features
 
-List the key features of your project. This could be a bullet-point list of functionalities or modules.
+- User registration and login with JWT authentication.
+- Product management: Add, retrieve, and search products by category.
+- Cart management: Add, remove, and update product quantities in the cart.
+- Order processing: Place orders and retrieve order history.
 
-- Feature 1
-- Feature 2
-- Feature 3
+
+
+## Technologies Used
+
+- **Node.js**: A JavaScript runtime for server-side development.
+- **Express.js**: A web application framework for Node.js.
+- **MongoDB**: A NoSQL database for storing data.
+- **JWT**: JSON Web Tokens for authentication.
+- **Swagger**: API documentation tool.
+- **Other Dependencies**: Various Node.js libraries and modules.
 
 ## Getting Started
 
-Explain how to get started with your project. What are the prerequisites, and how can users set up the project on their local machine?
-
 ### Prerequisites
 
-List any software, tools, or dependencies that users need to install before using your project.
+Before getting started, make sure you have the following installed:
 
-- Prerequisite 1
-- Prerequisite 2
-- Prerequisite 3
+- Node.js: [Download Node.js](https://nodejs.org/)
+- MongoDB: [Download MongoDB](https://www.mongodb.com/try/download/community)
 
 ### Installation
 
-Provide step-by-step instructions for installing and configuring your project. This might include code snippets or configuration files.
-
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/your-project.git
+
+   ```
+   git clone https://github.com/bethimanideep/triveous.git
+   ```
+   
+2. Navigate to the project directory:
+   ```
+   cd E-commerce
+   npm-i
+   ```
+   
+3. Install dependencies:
+   ```
+   npm install express mongoose bcrypt jsonwebtoken swagger-jsdoc swagger-ui-express
+   ```
+
+4. Application Start
+   ```
+   npm run server
+   ```
+
+
+## Usage
+### Authentication
+To use protected routes, you must authenticate by obtaining a JWT token. Use the /users/login route to log in and get the token.
+
+
+## Routes
+### User Routes
+```
+User Registration: POST /users/register
+User Login: POST /users/login
+```
+### Product Routes
+```
+Add a Product: POST /product/add-product
+Get Product Categories: GET /product/categoryproducts
+Get Product by ID: GET /product/getproduct/{id}
+```
+### Cart Routes
+```
+Add to Cart: POST /cart/add-to-cart/
+Remove from Cart: DELETE /cart/remove/{productId}
+Get Cart Contents: GET /cart/cartdata
+Update Quantity in Cart: PUT /cart/update-quantity
+```
+
+### Order Routes
+```
+Place an Order: POST /orders/place-order
+Get Order Details: GET /orders/allorders
+Get Order by ID: GET /orders/getorder/{orderId}
+```
+## NOTE:  API rate limiting to prevent abuse and maintain server stability.
+
+API RATE LIMIT used for the amount of time and no.of req valid for your application.
+
+middleware --> express-rate-limit
+
+##### Example Which I set in this assignment: 
+ - max: 6, //no. of req users can make within the time
+ - windowMs: 10000  // time frame in (ms)
+
+After 10000ms you get the Error: "Too many requests, please try again later" with a 429 status code if you try to make more than 6 requests.
+##### So Finally you can make 6 requests in 10 seconds.
+
+## Contributing
+
+We welcome contributions from the community! Check out our [Contributing Guidelines](CONTRIBUTING.md) to get involved.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgements
+
+We'd like to thank all of our contributors and supporters who have helped make Fanztar a reality.
+
+## Contact
+
+For any inquiries or feedback, please contact us at [bethimanideep@gmail.com](mailto:your@email.com).   
+
